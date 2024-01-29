@@ -22,7 +22,7 @@ def get_extensions():
         from distutils.unixccompiler import UnixCCompiler
         if '.mm' not in UnixCCompiler.src_extensions:
             UnixCCompiler.src_extensions.append('.mm')
-            UnixCCompiler.language_map['.mm'] = 'objc'
+            UnixCCompiler.language_map['.mm'] = 'objc++'
 
         extra_compile_args = {}
         extra_compile_args['cxx'] = [
@@ -41,7 +41,11 @@ def get_extensions():
 
     ext_ops = CppExtension(
         name='my_extension_cpp',
-        sources=['my_extension/cpp_extension.mm'],
+        sources=[
+            'my_extension/dispatch_add_tensors.mm',
+            'my_extension/add_tensors.cpp',
+            'my_extension/utils.mm'
+        ],
         include_dirs=[],
         extra_objects=[],
         extra_compile_args=extra_compile_args,
