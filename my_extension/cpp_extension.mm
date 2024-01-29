@@ -1,33 +1,11 @@
-#include <torch/extension.h>
+#include "utils.h"
+
 #import <Foundation/Foundation.h>
 #import <Metal/Metal.h>
 
-#include <fstream>
-#include <sstream>
-#include <cstring>
+#include <torch/extension.h>
 
 
-// function for reading in metal shader files as const char
-const char* read_metal_shader(const std::string& filename) {
-    std::ifstream file(filename);
-    if (!file.is_open()) {
-        throw std::runtime_error("Failed to open Metal shader file: " + filename);
-    }
-
-    std::stringstream buffer;
-    buffer << file.rdbuf();
-    std::string str = buffer.str();
-
-    char* shader_code = new char[str.length() + 1];
-    std::strcpy(shader_code, str.c_str());
-    return shader_code;
-}
-
-
-// Helper function to retrieve the `MTLBuffer` from a `torch::Tensor`.
-static inline id<MTLBuffer> getMTLBufferStorage(const torch::Tensor& tensor) {
-  return __builtin_bit_cast(id<MTLBuffer>, tensor.storage().data());
-}
 
 // Define a function to add tensors using Metal
 torch::Tensor& dispatchAddTensors(const torch::Tensor& a,
@@ -41,18 +19,19 @@ torch::Tensor& dispatchAddTensors(const torch::Tensor& a,
         int numThreads = a.numel();
 
         // get the shader source code as
-        const char* CUSTOM_KERNEL = read_metal_shader("./my_extension/metal/add_tensors.metal");
+        const char* customKernel = readMetalShader("./my_extension/metal/add_tensors.metal");
 
         // Load the custom soft shrink shader.
-        id<MTLLibrary> customKernelLibrary = [device newLibraryWithSource:[NSString stringWithUTF8String:CUSTOM_KERNEL]
+        id<MTLLibrary> customKernelLibrary = [device newLibraryWithSource:[NSString stringWithUTF8String:customKernel]
                                                                   options:nil
                                                                     error:&error];
         // free the memory from const char
-        delete[] CUSTOM_KERNEL;
+        delete[] customKernel;
 
         // check the library was created with CUSTOM_KERNEL
         TORCH_CHECK(customKernelLibrary, "Failed to to create custom kernel library, error: ", error.localizedDescription.UTF8String);
 
+        //
         std::string kernel_name = "addTensors";
         id<MTLFunction> customAddTensorsFunction = [customKernelLibrary newFunctionWithName:[NSString stringWithUTF8String:kernel_name.c_str()]];
         TORCH_CHECK(customAddTensorsFunction, "Failed to create function state object for ", kernel_name.c_str());
@@ -108,7 +87,7 @@ torch::Tensor add_tensors(const torch::Tensor &a, const torch::Tensor &b) {
     TORCH_CHECK(a.device().is_mps(), "input must be a MPS tensor");
     TORCH_CHECK(a.is_contiguous(), "input must be contiguous");
 
-    // Check the supported data types for soft shrink.
+    // Check the supported data types for the function
     TORCH_CHECK(a.scalar_type() == torch::kFloat ||
                 a.scalar_type() == torch::kHalf, "Unsupported data type: ", a.scalar_type());
 
