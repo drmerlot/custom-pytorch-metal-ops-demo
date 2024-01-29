@@ -1,0 +1,6 @@
+*.egg-info/
+build/
+__pycache__/
+*.so
+.DS_Store
+dist/%
