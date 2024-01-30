@@ -1,4 +1,5 @@
 #include "utils.h"
+#include "dispatch_matrix_multiply.h"
 #include <torch/extension.h>
 #import <Foundation/Foundation.h>
 #import <Metal/Metal.h>
@@ -52,14 +53,30 @@ torch::Tensor& dispatchMatrixMultiply(const torch::Tensor& A,
             id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
             TORCH_CHECK(computeEncoder, "Failed to create compute command encoder");
 
-            // Encode the pipeline state object and its parameters.
+            // Encode the pipeline state object
             [computeEncoder setComputePipelineState:matrixMultiplyPSO];
-            [computeEncoder setBuffer:getMTLBufferStorage(A) offset:a.storage_offset() * A.element_size() atIndex:0];
-            [computeEncoder setBuffer:getMTLBufferStorage(B) offset:b.storage_offset() * B.element_size() atIndex:1];
-            [computeEncoder setBuffer:getMTLBufferStorage(widthA) offset:widthA.storage_offset() * widthA.element_size() atIndex:2];
-            [computeEncoder setBuffer:getMTLBufferStorage(heightA) offset:heightA.storage_offset() * heightA.element_size() atIndex:3];
-            [computeEncoder setBuffer:getMTLBufferStorage(widthB) offset:widthB.storage_offset() * widthB.element_size() atIndex:4];
+
+            // Put the torch::Tensor matrix values in buffers
+            [computeEncoder setBuffer:getMTLBufferStorage(A) offset:A.storage_offset() * A.element_size() atIndex:0];
+            [computeEncoder setBuffer:getMTLBufferStorage(B) offset:B.storage_offset() * B.element_size() atIndex:1];
             [computeEncoder setBuffer:getMTLBufferStorage(result) offset:result.storage_offset() * result.element_size() atIndex:5];
+
+            // Buffers for the int values
+            // buffer for widthA
+            id<MTLBuffer> widthABuffer = [device newBufferWithBytes:&widthA
+                                                 length:sizeof(int)
+                                                options:MTLResourceStorageModeShared];
+            [computeEncoder setBuffer:widthABuffer offset:0 atIndex:2];
+            // buffer for heigthtB
+            id<MTLBuffer> heightABuffer = [device newBufferWithBytes:&heightA
+                                                  length:sizeof(int)
+                                                 options:MTLResourceStorageModeShared];
+            [computeEncoder setBuffer:heightABuffer offset:0 atIndex:3];
+            // buffer for widthB
+            id<MTLBuffer> widthBBuffer = [device newBufferWithBytes:&widthB
+                                                 length:sizeof(int)
+                                                options:MTLResourceStorageModeShared];
+            [computeEncoder setBuffer:widthBBuffer offset:0 atIndex:4];
 
             // set grid size
             MTLSize gridSize = MTLSizeMake(numThreads, 1, 1);
@@ -82,5 +99,5 @@ torch::Tensor& dispatchMatrixMultiply(const torch::Tensor& A,
         });
     }
 
-    return output;
+    return result;
 }
