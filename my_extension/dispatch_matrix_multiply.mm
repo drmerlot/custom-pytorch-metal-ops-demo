@@ -69,8 +69,15 @@ torch::Tensor& dispatchMatrixMultiply(const torch::Tensor& A,
             MTLSize gridSize = MTLSizeMake(wB, hA, 1);
 
             //
+            NSUInteger maxThreadsPerThreadgroup = matrixMultiplyPSO.maxTotalThreadsPerThreadgroup;
             NSUInteger threadGroupWidth = wB;
             NSUInteger threadGroupHeight = hA;
+            if (threadGroupWidth > maxThreadsPerThreadgroup / 2) {
+                threadGroupWidth = maxThreadsPerThreadgroup / 2;
+            }
+            if (threadGroupHeight > maxThreadsPerThreadgroup / 2) {
+                threadGroupHeight = maxThreadsPerThreadgroup / 2;
+            }
             MTLSize threadgroupSize = MTLSizeMake(threadGroupWidth, threadGroupHeight, 1);
 
             // Dispatch the compute command

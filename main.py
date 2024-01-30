@@ -29,7 +29,25 @@ print(f"Input tensor b: {b} with dim {b.shape}")
 print(f"Input device: {a.device}")
 
 result = my_extension.matrix_multiply(a, b)
-#result = a @ b
 print(f"Mat multi result: {result} with dim {result.shape}")
 print(f"Output device {result.device}")
 assert result.device == torch.device('mps:0'), "Output tensor is (maybe?) not on the MPS device"
+
+# bigger test
+a = torch.full((20, 30), 10.1).to('mps')
+b = torch.full((30, 20), 30.3).to('mps')
+
+print(f"Input tensor a: {a} with dim {a.shape}")
+print(f"Input tensor b: {b} with dim {b.shape}")
+print(f"Input device: {a.device}")
+
+result = my_extension.matrix_multiply(a, b)
+print(f"Mat multi result: {result} with dim {result.shape}")
+print(f"Output device {result.device}")
+assert result.device == torch.device('mps:0'), "Output tensor is (maybe?) not on the MPS device"
+
+
+
+
+
+
