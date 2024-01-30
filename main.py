@@ -16,12 +16,13 @@ assert result.device == torch.device('mps:0'), "Output tensor is (maybe?) not on
 
 # test the matrix_multiply function
 a = torch.tensor(
-    [[1., 2.],
-     [2., 3.]]
+    [[1., 2., 3.],
+     [2., 3., 4.]]
 ).to('mps')
 b = torch.tensor(
     [[4., 5.],
-     [6., 7.]]
+     [6., 7.],
+     [8., 9.]]
 ).to('mps')
 print(f"Input tensor a: {a} with dim {a.shape}")
 print(f"Input tensor b: {b} with dim {b.shape}")

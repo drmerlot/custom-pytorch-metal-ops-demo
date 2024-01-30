@@ -1,24 +1,36 @@
 #include <metal_stdlib>
 using namespace metal;
 
-kernel void matrixMultiply(constant float *matrixA [[buffer(0)]],
-                           constant float *matrixB [[buffer(1)]],
-                           device float *outputMatrix [[buffer(2)]],
-                           uint2 gid [[thread_position_in_grid]]) {
-    uint widthA = 2; // Number of columns in matrix A (2x3)
-    uint widthB = 2; // Number of columns in matrix B (3x2)
-    uint heightA = 2; // Number of rows in matrix A (2x3)
 
-    if (gid.x >= widthB || gid.y >= heightA) {
-       return;
+kernel void matrixMultiply(
+    constant float* A [[buffer(0)]], // Buffer for matrix A
+    constant float* B [[buffer(1)]], // Buffer for matrix B
+    constant uint* widthA [[buffer(2)]], // Buffer for width of A
+    constant uint* heightA [[buffer(3)]], // Buffer for height of A
+    constant uint* widthB [[buffer(4)]], // Buffer for width of B
+    device float* result [[buffer(5)]], // Buffer for result matrix
+    uint2 gid [[thread_position_in_grid]]) {
+
+    // Get dimensions from buffers
+    uint colsA = *widthA; // Number of columns in A
+    uint rowsA = *heightA; // Number of rows in A
+    uint colsB = *widthB; // Number of columns in B
+
+    // Check if gid is within the bounds of the result matrix
+    if (gid.x >= colsB || gid.y >= rowsA) {
+        return;
     }
 
-    float sum = 0;
-    for (uint i = 0; i < widthA; ++i) {
-        sum += matrixA[gid.y * widthA + i] * matrixB[i * widthB + gid.x];
+    // Perform matrix multiplication for the element at gid
+    float sum = 0.0;
+    for (uint i = 0; i < colsA; ++i) {
+        sum += A[gid.y * colsA + i] * B[i * colsB + gid.x];
     }
-    outputMatrix[gid.y * widthB + gid.x] = sum;
+
+    // Write the result
+    result[gid.y * colsB + gid.x] = sum;
 }
+
 
 // // Define a simple kernel function to multiply 2 matricies
 // kernel void matrixMultiply(

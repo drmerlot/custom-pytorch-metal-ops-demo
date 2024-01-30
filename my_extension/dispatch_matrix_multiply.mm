@@ -9,9 +9,11 @@
 
 torch::Tensor& dispatchMatrixMultiply(const torch::Tensor& A,
                                       const torch::Tensor& B,
-                                      // const torch::Tensor& widthA,
-                                      // const torch::Tensor& heightA,
-                                      // const torch::Tensor& widthB,
+                                      const torch::Tensor& widthA,
+                                      const torch::Tensor& heightA,
+                                      const torch::Tensor& widthB,
+                                      const int& hA,
+                                      const int& wB,
                                       torch::Tensor& result) {
     @autoreleasepool {
         // Retrieve the default Metal device
@@ -54,21 +56,22 @@ torch::Tensor& dispatchMatrixMultiply(const torch::Tensor& A,
             // Set the tensor buffers
             [computeEncoder setBuffer:getMTLBufferStorage(A) offset:A.storage_offset() * A.element_size() atIndex:0];
             [computeEncoder setBuffer:getMTLBufferStorage(B) offset:B.storage_offset() * B.element_size() atIndex:1];
-            [computeEncoder setBuffer:getMTLBufferStorage(result) offset:result.storage_offset() * result.element_size() atIndex:2];
-
-            // [computeEncoder setBuffer:getMTLBufferStorage(widthA) offset:0 atIndex:2];
-            // [computeEncoder setBuffer:getMTLBufferStorage(heightA) offset:0 atIndex:3];
-            // [computeEncoder setBuffer:getMTLBufferStorage(widthB) offset:0 atIndex:4];
+            [computeEncoder setBuffer:getMTLBufferStorage(widthA) offset:widthA.storage_offset() * widthA.element_size() atIndex:2];
+            [computeEncoder setBuffer:getMTLBufferStorage(heightA) offset:heightA.storage_offset() * heightA.element_size() atIndex:3];
+            [computeEncoder setBuffer:getMTLBufferStorage(widthB) offset:widthB.storage_offset() * widthB.element_size() atIndex:4];
+            [computeEncoder setBuffer:getMTLBufferStorage(result) offset:result.storage_offset() * result.element_size() atIndex:5];
 
             // Set grid and thread group sizes
             //MTLSize gridSize = MTLSizeMake(widthB.item<int>(), heightA.item<int>(), 1);
 
             // hard set hthe gridSize and threadGroupSize
-            MTLSize gridSize = MTLSizeMake(2, 2, 1); // For a 2x2 output matrix
-            NSUInteger threadGroupWidth = 2;
-            NSUInteger threadGroupHeight = 2;
-            MTLSize threadgroupSize = MTLSizeMake(threadGroupWidth, threadGroupHeight, 1); // Creating a 2x2 thread group
+            // same dims as the output matrix
+            MTLSize gridSize = MTLSizeMake(wB, hA, 1);
 
+            //
+            NSUInteger threadGroupWidth = wB;
+            NSUInteger threadGroupHeight = hA;
+            MTLSize threadgroupSize = MTLSizeMake(threadGroupWidth, threadGroupHeight, 1);
 
             // Dispatch the compute command
             [computeEncoder dispatchThreads:gridSize threadsPerThreadgroup:threadgroupSize];
