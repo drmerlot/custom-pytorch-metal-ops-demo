@@ -6,9 +6,11 @@
 // dispatch add tensors declaration
 torch::Tensor& dispatchMatrixMultiply(const torch::Tensor& A,
                                       const torch::Tensor& B,
-                                      // const torch::Tensor& widthA,
-                                      // const torch::Tensor& heightA,
-                                      // const torch::Tensor& widthB,
+                                      const torch::Tensor& widthA,
+                                      const torch::Tensor& heightA,
+                                      const torch::Tensor& widthB,
+                                      const int& hA,
+                                      const int& wB,
                                       torch::Tensor& result);
 
 #endif // DISPATCH_MATRIX_MULTIPLY_H
