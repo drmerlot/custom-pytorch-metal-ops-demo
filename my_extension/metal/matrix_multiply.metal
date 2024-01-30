@@ -1,7 +1,7 @@
 #include <metal_stdlib>
 using namespace metal;
 
-// Define a simple kernel function to multiply 2 matricies matricies
+// Define a simple kernel function to multiply 2 matricies
 kernel void matrixMultiply(
     device float* A [[buffer(0)]],
     device float* B [[buffer(1)]],
@@ -17,5 +17,5 @@ kernel void matrixMultiply(
     for (int i = 0; i < widthA; ++i) {
         sum += A[gid.y * widthA + i] * B[i * widthB + gid.x];
     }
-    output[gid.y * widthB + gid.x] = sum;
+    result[gid.y * widthB + gid.x] = sum;
 }

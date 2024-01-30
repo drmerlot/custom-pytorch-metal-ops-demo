@@ -43,9 +43,11 @@ def get_extensions():
     ext_ops = CppExtension(
         name='my_extension_cpp',
         sources=[
-            'my_extension/dispatch_add_tensors.mm',
-            'my_extension/utils.mm',
-            'my_extension/add_tensors.cpp'
+            './my_extension/my_extension.cpp',
+            './my_extension/utils.mm',
+            './my_extension/add_tensors.cpp',
+            './my_extension/dispatch_matrix_multiply.mm',
+            #'./my_extension/matrix_multiply.cpp'
         ],
         include_dirs=[],
         extra_objects=[],
