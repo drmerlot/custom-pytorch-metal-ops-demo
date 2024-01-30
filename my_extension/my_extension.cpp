@@ -31,15 +31,30 @@ torch::Tensor matrix_multiply(const torch::Tensor &A,
     TORCH_CHECK(A.scalar_type() == torch::kFloat ||
                 A.scalar_type() == torch::kHalf, "Unsupported data type: ", A.scalar_type());
 
-    // get the required dimentions for the remaining inputs and the output
-    int heightA = A.size(0);
-    int widthA = A.size(1);
-    int widthB = B.size(1);
+    // // get the required dimentions for the remaining inputs and the output
+    // int hA = A.size(0);
+    // int wA = A.size(1);
+    // int wB = B.size(1);
+
+    // // convert ints to torch tensors to set buffers
+    // auto widthA = torch::tensor({wA}, torch::dtype(torch::kInt32)).to(at::kMPS);
+    // auto heightA = torch::tensor({hA}, torch::dtype(torch::kInt32)).to(at::kMPS);
+    // auto widthB = torch::tensor({wB}, torch::dtype(torch::kInt32)).to(at::kMPS);
+
 
     // Allocate the output, with known dim from above
-    torch::Tensor result = torch::empty({heightA, widthB});
+    //torch::Tensor output = torch::empty({2, 2}, torch::TensorOptions().dtype(torch::kFloat));
+    // Assuming A is m x n and B is n x p
+    auto A_size = A.sizes();
+    auto B_size = B.sizes();
+    int m = A_size[0];
+    int p = B_size[1];
 
-    return dispatchMatrixMultiply(A, B, widthA, heightA, widthB, result);
+    // Create an output tensor of size m x p, with the same data type and device as A
+    torch::Tensor output = torch::empty({m, p}, torch::TensorOptions().dtype(A.dtype()).device(A.device()));
+
+    return dispatchMatrixMultiply(A, B, output);
+    //return dispatchMatrixMultiply(A, B, widthA, heightA, widthB, result);
 }
 
 // Create Python bindings for the Objective-C++ code.
