@@ -28,8 +28,8 @@ torch::Tensor matrix_multiply(const torch::Tensor &A,
 
     // !! rethink this !!
     // // Check the supported data types for the function
-    // TORCH_CHECK(a.scalar_type() == torch::kFloat ||
-    //             a.scalar_type()a == torch::kHalf, "Unsupported data type: ", a.scalar_type());
+    TORCH_CHECK(A.scalar_type() == torch::kFloat ||
+                A.scalar_type() == torch::kHalf, "Unsupported data type: ", A.scalar_type());
 
     // get the required dimentions for the remaining inputs and the output
     int widthA = A.size(0);
@@ -44,6 +44,6 @@ torch::Tensor matrix_multiply(const torch::Tensor &A,
 
 // Create Python bindings for the Objective-C++ code.
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
-    m.def("add_tensors", &add_tensors);
     m.def("matrix_multiply", &matrix_multiply);
+    m.def("add_tensors", &add_tensors);
 }

@@ -45,8 +45,9 @@ def get_extensions():
         sources=[
             './my_extension/my_extension.cpp',
             './my_extension/utils.mm',
-            './my_extension/add_tensors.cpp',
+            #'./my_extension/add_tensors.cpp',
             './my_extension/dispatch_matrix_multiply.mm',
+            './my_extension/dispatch_add_tensors.mm',
             #'./my_extension/matrix_multiply.cpp'
         ],
         include_dirs=[],

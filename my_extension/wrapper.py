@@ -9,6 +9,6 @@ def add_tensors(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
 
 
 # Define a wrapper functions
-def matrix_multiploy(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
+def matrix_multiply(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
     # Call the C++ function
     return my_extension_cpp.matrix_multiply(a, b)
