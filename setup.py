@@ -3,6 +3,7 @@ from setuptools import find_packages, setup
 import torch
 from torch.utils.cpp_extension import CppExtension, BuildExtension
 
+
 def get_extensions():
 
     # prevent ninja from using too many resources
@@ -43,8 +44,8 @@ def get_extensions():
         name='my_extension_cpp',
         sources=[
             'my_extension/dispatch_add_tensors.mm',
-            'my_extension/add_tensors.cpp',
-            'my_extension/utils.mm'
+            'my_extension/utils.mm',
+            'my_extension/add_tensors.cpp'
         ],
         include_dirs=[],
         extra_objects=[],
