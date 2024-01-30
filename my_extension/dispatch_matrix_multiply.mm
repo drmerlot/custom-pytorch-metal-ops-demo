@@ -16,9 +16,6 @@ torch::Tensor& dispatchMatrixMultiply(const torch::Tensor& A,
         id<MTLDevice> device = MTLCreateSystemDefaultDevice();
         NSError *error = nil;
 
-        // Set the number of threads equal to the number of elements within the input tensor.
-        int numThreads = A.numel(); // !! THIS IS NOT LIKELY RIGHT!
-
         // get the shader source code as
         const char* customKernel = readMetalShader("./my_extension/metal/matrix_multiply.metal");
 
@@ -59,7 +56,6 @@ torch::Tensor& dispatchMatrixMultiply(const torch::Tensor& A,
             // Put the torch::Tensor matrix values in buffers
             [computeEncoder setBuffer:getMTLBufferStorage(A) offset:A.storage_offset() * A.element_size() atIndex:0];
             [computeEncoder setBuffer:getMTLBufferStorage(B) offset:B.storage_offset() * B.element_size() atIndex:1];
-            [computeEncoder setBuffer:getMTLBufferStorage(result) offset:result.storage_offset() * result.element_size() atIndex:5];
 
             // Buffers for the int values
             // buffer for widthA
@@ -67,35 +63,44 @@ torch::Tensor& dispatchMatrixMultiply(const torch::Tensor& A,
                                                  length:sizeof(int)
                                                 options:MTLResourceStorageModeShared];
             [computeEncoder setBuffer:widthABuffer offset:0 atIndex:2];
-            // buffer for heigthtB
+
+            // buffer for heigthtA
             id<MTLBuffer> heightABuffer = [device newBufferWithBytes:&heightA
                                                   length:sizeof(int)
                                                  options:MTLResourceStorageModeShared];
             [computeEncoder setBuffer:heightABuffer offset:0 atIndex:3];
+
             // buffer for widthB
             id<MTLBuffer> widthBBuffer = [device newBufferWithBytes:&widthB
                                                  length:sizeof(int)
                                                 options:MTLResourceStorageModeShared];
             [computeEncoder setBuffer:widthBBuffer offset:0 atIndex:4];
 
+            // create the buffer for the result
+            [computeEncoder setBuffer:getMTLBufferStorage(result) offset:result.storage_offset() * result.element_size() atIndex:5];
+
             // set grid size
-            MTLSize gridSize = MTLSizeMake(numThreads, 1, 1);
+            MTLSize gridSize = MTLSizeMake(widthB, heightA, 1); // Set grid size to match the dimensions of the output matrix
 
-            // Calculate a thread group size.
-            NSUInteger threadGroupSize = matrixMultiplyPSO.maxTotalThreadsPerThreadgroup;
-            if (threadGroupSize > numThreads) {
-                threadGroupSize = numThreads;
-            }
-            MTLSize threadgroupSize = MTLSizeMake(threadGroupSize, 1, 1);
+            // Calculate a thread group size
+            //NSUInteger threadGroupSize = matrixMultiplyPSO.maxTotalThreadsPerThreadgroup;
+            NSUInteger threadGroupSize = 1;
 
-            // Encode the compute command.
-            [computeEncoder dispatchThreads:gridSize
-                      threadsPerThreadgroup:threadgroupSize];
+            MTLSize threadgroupSize = MTLSizeMake(threadGroupSize, 1, 1); // Adjust as needed
+
+            // Encode the compute command
+            [computeEncoder dispatchThreads:gridSize threadsPerThreadgroup:threadgroupSize];
 
             [computeEncoder endEncoding];
 
             // Commit the work.
             torch::mps::commit();
+            //[commandBuffer waitUntilCompleted];
+
+            // Release the buffers by setting them to nil
+            widthABuffer = nil;
+            heightABuffer = nil;
+            widthBBuffer = nil;
         });
     }
 

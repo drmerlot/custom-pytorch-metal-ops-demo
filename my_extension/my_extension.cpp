@@ -32,8 +32,8 @@ torch::Tensor matrix_multiply(const torch::Tensor &A,
                 A.scalar_type() == torch::kHalf, "Unsupported data type: ", A.scalar_type());
 
     // get the required dimentions for the remaining inputs and the output
-    int widthA = A.size(0);
-    int heightA = A.size(1);
+    int heightA = A.size(0);
+    int widthA = A.size(1);
     int widthB = B.size(1);
 
     // Allocate the output, with known dim from above
