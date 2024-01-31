@@ -76,18 +76,18 @@ torch::Tensor& dispatchMatrixMultiply(const torch::Tensor& A,
             NSUInteger threadGroupHeight = 32;
 
             // // reduce by a factor of two until thread group fits under max threads per group
-            // while (threadGroupWidth * threadGroupHeight > maxThreadsPerThreadgroup) {
-            //     threadGroupWidth /= 2;
-            //     threadGroupHeight /= 2;
-            // }
+            while (threadGroupWidth * threadGroupHeight > maxThreadsPerThreadgroup) {
+                threadGroupWidth /= 2;
+                threadGroupHeight /= 2;
+            }
 
-            // // Adjust thread group size to fit the gridSize if necessary
-            // if (wB % threadGroupWidth != 0) {
-            //     threadGroupWidth = wB % threadGroupWidth;
-            // }
-            // if (hA % threadGroupHeight != 0) {
-            //     threadGroupHeight = hA % threadGroupHeight;
-            // }
+            // Adjust thread group size to fit the gridSize if necessary
+            if (wB % threadGroupWidth != 0) {
+                threadGroupWidth = wB % threadGroupWidth;
+            }
+            if (hA % threadGroupHeight != 0) {
+                threadGroupHeight = hA % threadGroupHeight;
+            }
 
             MTLSize threadgroupSize = MTLSizeMake(threadGroupWidth, threadGroupHeight, 1);
 
