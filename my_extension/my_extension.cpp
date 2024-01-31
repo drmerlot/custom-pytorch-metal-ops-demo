@@ -1,5 +1,6 @@
 #include "dispatch_add_tensors.h"
 #include "dispatch_matrix_multiply.h"
+#include "dispatch_relu.h"
 #include <torch/extension.h>
 
 // C++ op dispatching the Metal add tensors shader
@@ -57,8 +58,40 @@ torch::Tensor matrix_multiply(const torch::Tensor &A,
     return dispatchMatrixMultiply(A, B, widthA, heightA, widthB, hA, wB, output);
 }
 
+// C++ op dispatching the Metal add tensors shader
+torch::Tensor relu(const torch::Tensor &input) {
+    // Check whether the input tensor resides on the MPS device and whether it's contiguous.
+    // this should go in utils too, find out how to wrap TORCK_CHECK in a function
+    TORCH_CHECK(input.device().is_mps(), "input must be a MPS tensor");
+    TORCH_CHECK(input.is_contiguous(), "input must be contiguous");
+
+    // !! rethink this !!
+    // // Check the supported data types for the function
+    TORCH_CHECK(input.scalar_type() == torch::kFloat ||
+                input.scalar_type() == torch::kHalf, "Unsupported data type: ", input.scalar_type());
+
+    // // get the required dimentions for the remaining inputs and the output
+    int inputElements = input.numel();
+
+    // // convert ints to torch tensors to set buffers
+    auto numElements = torch::tensor({inputElements}, torch::dtype(torch::kInt32)).to(at::kMPS);
+
+
+    // Allocate the output, with known dim from above
+    //torch::Tensor output = torch::empty({2, 2}, torch::TensorOptions().dtype(torch::kFloat));
+    // Assuming A is m x n and B is n x p
+
+    // Allocate the output, same shape as the input
+    torch::Tensor output = torch::empty_like(input);
+
+    //return dispatchMatrixMultiply(A, B, output);
+    return dispatchRelu(input, numElements, output);
+}
+
+
 // Create Python bindings for the Objective-C++ code.
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
     m.def("matrix_multiply", &matrix_multiply);
     m.def("add_tensors", &add_tensors);
+    m.def("relu", &relu);
 }
