@@ -97,7 +97,7 @@ torch::Tensor& dispatchMatrixMultiply(const torch::Tensor& A,
             [computeEncoder endEncoding];
 
             // Commit the work
-            torch::mps::commit();  // or commit? or synchronize?
+            torch::mps::synchronize();  // or commit? or synchronize?
         });
     }
     return result;
