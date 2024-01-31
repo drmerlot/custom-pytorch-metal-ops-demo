@@ -3,6 +3,19 @@ import torch
 import my_extension
 import torch.mps.profiler as mps_profiler
 
+
+# test the relu activation function.
+a = torch.tensor(
+    [[-0.15, 0.88, -0.74],
+     [0.001, -0.55, 0.12]]
+).to('mps')
+print(f"Input tensor a: {a}")
+
+# run the function
+result = my_extension.relu(a)
+print(f"relu result: {result} with dim {result.shape}")
+
+
 # test the add_tensors function
 a = torch.tensor([1.0, 2.0, 3.0]).to('mps')
 b = torch.tensor([4.0, 5.0, 6.0]).to('mps')
