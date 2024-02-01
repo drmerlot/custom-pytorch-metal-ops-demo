@@ -13,6 +13,6 @@ kernel void relu(
 
     // Ensure we do not access out of bounds
     if (gid < outputElements) {
-        output[gid] = max(input[gid], 0.0f); // ReLU operation
+        output[gid] = max(input[gid], 0.001f); // ReLU operation
     }
 }

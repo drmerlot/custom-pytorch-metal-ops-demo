@@ -23,7 +23,8 @@ class CustomLinear(nn.Module):
         nn.init.kaiming_uniform_(self.weight, a=math.sqrt(5))
 
     def forward(self, inp):
-        return CustomLinearFunction.apply(inp, self.weight)
+        inp_contiguous = inp.contiguous()
+        return CustomLinearFunction.apply(inp_contiguous, self.weight)
 
     def extra_repr(self):
         return 'input_features={}, output_features={}'.format(
@@ -35,7 +36,9 @@ class CustomLinearFunction(Function):
     @staticmethod
     def forward(ctx, inp, weight):
         ctx.save_for_backward(inp, weight)
-        return my_extension_cpp.matrix_multiply(inp, weight.t())
+        inp_cont = inp.contiguous()
+        weight_cont = weight.contiguous()
+        return my_extension_cpp.matrix_multiply(inp_cont, weight_cont.t())
 
     @staticmethod
     def backward(ctx, grad_output):
@@ -49,7 +52,10 @@ class CustomLinearFunction(Function):
         if ctx.needs_input_grad[1]:
             # Gradient with respect to weight
             # Note: Need to adjust dimensions to match the weights
-            grad_weight = my_extension_cpp.matrix_multiply(grad_output.t(), inp)
+            grad_output_t = grad_output.t()
+            grad_output_t = grad_output_t.contiguous()
+            inp = inp.contiguous()
+            grad_weight = my_extension_cpp.matrix_multiply(grad_output_t, inp)
 
         return grad_input, grad_weight
 
@@ -61,7 +67,8 @@ class CustomReLU(nn.Module):
 
     def forward(self, inp):
         # Call the C++ function that invokes the Metal shader
-        return CustomReLUFunction.apply(inp)
+        inp_cont = inp.contiguous()
+        return CustomReLUFunction.apply(inp_cont)
 
     def extra_repr(self):
         return "MPS-based ReLU"
@@ -72,7 +79,8 @@ class CustomReLUFunction(Function):
     def forward(ctx, inp):
         # Store input for use in the backward pass
         ctx.save_for_backward(inp)
-        return my_extension_cpp.relu(inp)
+        inp_cont = inp.contiguous()
+        return my_extension_cpp.relu(inp_cont)
 
     @staticmethod
     def backward(ctx, grad_output):
@@ -80,5 +88,5 @@ class CustomReLUFunction(Function):
         inp, = ctx.saved_tensors
         # Create gradient tensor, only allowing gradients to flow where input > 0
         grad_input = grad_output.clone()
-        grad_input[inp < 0] = 0
+        grad_input[inp < .001] = .001
         return grad_input
