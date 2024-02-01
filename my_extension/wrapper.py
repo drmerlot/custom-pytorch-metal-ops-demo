@@ -46,13 +46,13 @@ class CustomLinearFunction(Function):
 
         if ctx.needs_input_grad[0]:
             # Gradient with respect to input
-            grad_input = my_extension_cpp.matrix_multiply(grad_output, weight)
+            grad_input = my_extension_cpp.matrix_multiply(grad_output, weight.t())
 
         if ctx.needs_input_grad[1]:
             # Gradient with respect to weight
-            inp_t = inp.t()
-            inp_t = inp_t.contiguous()
-            grad_weight = my_extension_cpp.matrix_multiply(grad_output, inp_t)
+            inp_t = inp.t().contiguous()
+            grad_output = grad_output.contiguous()
+            grad_weight = my_extension_cpp.matrix_multiply(inp_t, grad_output)
         return grad_input, grad_weight
 
 
