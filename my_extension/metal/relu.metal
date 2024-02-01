@@ -1,18 +1,14 @@
 #include <metal_stdlib>
 using namespace metal;
 
-// The kernel function for ReLU activation
 kernel void relu(
-    constant float* input [[buffer(0)]],
-    constant uint* numElements [[buffer(1)]], // Buffer for input data
-    device float* output [[buffer(3)]],      // Buffer for output data
-    uint gid [[thread_position_in_grid]]) {  // Global thread ID
+    constant float* input [[buffer(0)]],       // Buffer for input data
+    constant uint* numElements [[buffer(1)]],  // Buffer for number of elements
+    device float* output [[buffer(2)]],        // Buffer for output data
+    uint gid [[thread_position_in_grid]]) {    // Global thread ID
 
-    // get any of the single value of of tensor buffers
-    uint outputElements = *numElements;
-
-    // Ensure we do not access out of bounds
-    if (gid < outputElements) {
-        output[gid] = max(input[gid], 0.001f); // ReLU operation
+    if (gid < *numElements) {
+        float inputValue = input[gid];
+        output[gid] = (inputValue > 0.0f) ? inputValue : (0.01f * inputValue); // Correctly multiply scalar values
     }
 }

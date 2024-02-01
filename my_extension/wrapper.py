@@ -1,4 +1,3 @@
-import math
 import torch
 import torch.nn as nn
 from torch.autograd import Function
@@ -20,7 +19,7 @@ class CustomLinear(nn.Module):
         self.reset_parameters()
 
     def reset_parameters(self):
-        nn.init.kaiming_uniform_(self.weight, a=math.sqrt(5))
+        nn.init.kaiming_uniform_(self.weight)
 
     def forward(self, inp):
         inp_contiguous = inp.contiguous()
@@ -51,12 +50,9 @@ class CustomLinearFunction(Function):
 
         if ctx.needs_input_grad[1]:
             # Gradient with respect to weight
-            # Note: Need to adjust dimensions to match the weights
-            grad_output_t = grad_output.t()
-            grad_output_t = grad_output_t.contiguous()
-            inp = inp.contiguous()
-            grad_weight = my_extension_cpp.matrix_multiply(grad_output_t, inp)
-
+            inp_t = inp.t()
+            inp_t = inp_t.contiguous()
+            grad_weight = my_extension_cpp.matrix_multiply(grad_output, inp_t)
         return grad_input, grad_weight
 
 
@@ -87,6 +83,8 @@ class CustomReLUFunction(Function):
         # Retrieve the stored input
         inp, = ctx.saved_tensors
         # Create gradient tensor, only allowing gradients to flow where input > 0
-        grad_input = grad_output.clone()
-        grad_input[inp < .001] = .001
+        #grad_input = grad_output.clone()
+        #grad_input[inp < 0.0] = 0.0
+        grad_output = grad_output.contiguous()
+        grad_input = torch.where(inp > 0, grad_output, 0.01 * grad_output)
         return grad_input

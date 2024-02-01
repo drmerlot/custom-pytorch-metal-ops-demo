@@ -58,7 +58,7 @@ torch::Tensor& dispatchRelu(const torch::Tensor& input,
             // same dims as the output matrix
             int outputH = output.size(0);
             int outputW = output.size(1);
-            MTLSize gridSize = MTLSizeMake(outputH, outputW, 1);
+            MTLSize gridSize = MTLSizeMake(outputW, outputH, 1);
 
             // Query the maximum threads per thread group from the device
             NSUInteger maxThreadsPerThreadgroup = reluPSO.maxTotalThreadsPerThreadgroup;
