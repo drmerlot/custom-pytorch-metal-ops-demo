@@ -6,7 +6,8 @@
 
 // Define a function to add tensors using Metal
 torch::Tensor& dispatchRelu(const torch::Tensor& input,
-                            const torch::Tensor& numElements,
+                            const torch::Tensor& width,
+                            const torch::Tensor& height,
                             torch::Tensor& output) {
     @autoreleasepool {
         // Retrieve the default Metal device
@@ -48,8 +49,9 @@ torch::Tensor& dispatchRelu(const torch::Tensor& input,
 
             // Set the tensor buffers
             [computeEncoder setBuffer:getMTLBufferStorage(input) offset:input.storage_offset() * input.element_size() atIndex:0];
-            [computeEncoder setBuffer:getMTLBufferStorage(numElements) offset:numElements.storage_offset() * numElements.element_size() atIndex:1];
-            [computeEncoder setBuffer:getMTLBufferStorage(output) offset:output.storage_offset() * output.element_size() atIndex:2];
+            [computeEncoder setBuffer:getMTLBufferStorage(width) offset:width.storage_offset() * width.element_size() atIndex:1];
+            [computeEncoder setBuffer:getMTLBufferStorage(height) offset:height.storage_offset() * height.element_size() atIndex:2];
+            [computeEncoder setBuffer:getMTLBufferStorage(output) offset:output.storage_offset() * output.element_size() atIndex:3];
 
             // Set grid and thread group sizes
             //MTLSize gridSize = MTLSizeMake(widthB.item<int>(), heightA.item<int>(), 1);

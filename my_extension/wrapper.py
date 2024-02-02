@@ -68,7 +68,9 @@ class CustomLinearFunction(Function):
     @staticmethod
     def forward(ctx, input, weights):
         ctx.save_for_backward(input, weights)
-        output = input @ weights.t()
+        input = input.contiguous()
+        weights_t = weights.t().contiguous()
+        output = my_extension_cpp.matrix_multiply(input, weights_t)
         return output
 
     @staticmethod
@@ -78,10 +80,14 @@ class CustomLinearFunction(Function):
         grad_inputs = grad_weights = None
 
         if ctx.needs_input_grad[0]:
-            grad_inputs = grad_output @ weights  # [N, out_features] @ [in_features, out_features].T -> [N, in_features]
+            grad_output = grad_output.contiguous()
+            weights = weights.contiguous()
+            grad_inputs = my_extension_cpp.matrix_multiply(grad_output, weights)  # [N, out_features] @ [in_features, out_features].T -> [N, in_features]
 
         if ctx.needs_input_grad[1]:
-            grad_weights = input.t() @ grad_output  # [in_features, N].T @ [N, out_features] -> [in_features, out_features]
+            input_t = input.t().contiguous()
+            grad_output = grad_output.contiguous()
+            grad_weights = my_extension_cpp.matrix_multiply(input_t, grad_output)  # [in_features, N].T @ [N, out_features] -> [in_features, out_features]
             grad_weights = grad_weights.t()
 
         return grad_inputs, grad_weights
@@ -107,15 +113,15 @@ class CustomReLUFunction(Function):
         # Store input for use in the backward pass
         ctx.save_for_backward(inp)
         inp_cont = inp.contiguous()
-        return my_extension_cpp.relu(inp_cont)
+        return nn.functional.relu(inp_cont)
 
     @staticmethod
     def backward(ctx, grad_output):
         # Retrieve the stored input
         inp, = ctx.saved_tensors
         # Create gradient tensor, only allowing gradients to flow where input > 0
-        #grad_input = grad_output.clone()
-        #grad_input[inp < 0.0] = 0.0
-        grad_output = grad_output.contiguous()
-        grad_input = torch.where(inp > 0, grad_output, 0.01 * grad_output)
+        grad_input = grad_output.clone()
+        grad_input[inp < 0.0] = 0.0
+        #grad_output = grad_output.contiguous()
+        #grad_input = torch.where(inp > 0, grad_output, 0.01 * grad_output)
         return grad_input
