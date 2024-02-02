@@ -78,11 +78,6 @@ torch::Tensor relu(const torch::Tensor &input) {
     auto width = torch::tensor({W}, torch::dtype(torch::kInt32)).to(at::kMPS);
     auto height = torch::tensor({H}, torch::dtype(torch::kInt32)).to(at::kMPS);
 
-
-    // Allocate the output, with known dim from above
-    //torch::Tensor output = torch::empty({2, 2}, torch::TensorOptions().dtype(torch::kFloat));
-    // Assuming A is m x n and B is n x p
-
     // Allocate the output, same shape as the input
     torch::Tensor output = torch::empty_like(input);
 

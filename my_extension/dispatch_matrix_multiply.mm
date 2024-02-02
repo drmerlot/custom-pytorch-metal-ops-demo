@@ -64,7 +64,7 @@ torch::Tensor& dispatchMatrixMultiply(const torch::Tensor& A,
             // Set grid and thread group sizes
             //MTLSize gridSize = MTLSizeMake(widthB.item<int>(), heightA.item<int>(), 1);
 
-            // hard set hthe gridSize and threadGroupSize
+            // hard set the gridSize and threadGroupSize
             // same dims as the output matrix
             MTLSize gridSize = MTLSizeMake(wB, hA, 1);
 
