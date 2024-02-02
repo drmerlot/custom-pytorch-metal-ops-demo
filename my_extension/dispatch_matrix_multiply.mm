@@ -21,7 +21,7 @@ torch::Tensor& dispatchMatrixMultiply(const torch::Tensor& A,
         NSError *error = nil;
 
         // Load the shader source and create the compute kernel library
-        const char* customKernel = readMetalShader("./my_extension/metal/matrix_multiply.metal");
+        const char* customKernel = readMetalShader("../my_extension/metal/matrix_multiply.metal");
         id<MTLLibrary> customKernelLibrary = [device newLibraryWithSource:[NSString stringWithUTF8String:customKernel]
                                                                   options:nil
                                                                     error:&error];

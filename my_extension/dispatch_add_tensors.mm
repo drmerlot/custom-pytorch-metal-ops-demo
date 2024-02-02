@@ -16,7 +16,7 @@ torch::Tensor& dispatchAddTensors(const torch::Tensor& a,
         int numThreads = a.numel();
 
         // get the shader source code as
-        const char* customKernel = readMetalShader("./my_extension/metal/add_tensors.metal");
+        const char* customKernel = readMetalShader("../my_extension/metal/add_tensors.metal");
 
         // Load the custom soft shrink shader.
         id<MTLLibrary> customKernelLibrary = [device newLibraryWithSource:[NSString stringWithUTF8String:customKernel]

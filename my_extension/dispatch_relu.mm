@@ -15,7 +15,7 @@ torch::Tensor& dispatchRelu(const torch::Tensor& input,
         NSError *error = nil;
 
         // Load the shader source and create the compute kernel library
-        const char* customKernel = readMetalShader("./my_extension/metal/relu.metal");
+        const char* customKernel = readMetalShader("../my_extension/metal/relu.metal");
         id<MTLLibrary> customKernelLibrary = [device newLibraryWithSource:[NSString stringWithUTF8String:customKernel]
                                                                   options:nil
                                                                     error:&error];
