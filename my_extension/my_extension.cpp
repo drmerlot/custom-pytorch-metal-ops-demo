@@ -71,10 +71,12 @@ torch::Tensor relu(const torch::Tensor &input) {
                 input.scalar_type() == torch::kHalf, "Unsupported data type: ", input.scalar_type());
 
     // // get the required dimentions for the remaining inputs and the output
-    int inputElements = input.numel();
+    int W = input.size(1);
+    int H = input.size(0);
 
     // // convert ints to torch tensors to set buffers
-    auto numElements = torch::tensor({inputElements}, torch::dtype(torch::kInt32)).to(at::kMPS);
+    auto width = torch::tensor({W}, torch::dtype(torch::kInt32)).to(at::kMPS);
+    auto height = torch::tensor({H}, torch::dtype(torch::kInt32)).to(at::kMPS);
 
 
     // Allocate the output, with known dim from above
@@ -85,7 +87,7 @@ torch::Tensor relu(const torch::Tensor &input) {
     torch::Tensor output = torch::empty_like(input);
 
     //return dispatchMatrixMultiply(A, B, output);
-    return dispatchRelu(input, numElements, output);
+    return dispatchRelu(input, width, height, output);
 }
 
 
