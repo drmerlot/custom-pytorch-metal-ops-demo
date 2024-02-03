@@ -46,6 +46,7 @@ def get_extensions():
             './my_extension/my_extension.cpp',
             './my_extension/utils.mm',
             './my_extension/dispatch_matrix_multiply.mm',
+            './my_extension/dispatch_matrix_add.mm',
             './my_extension/dispatch_add_tensors.mm',
             './my_extension/dispatch_relu.mm'
         ],
