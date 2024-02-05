@@ -6,7 +6,7 @@ from setuptools.command.build_ext import build_ext
 from torch.utils.cpp_extension import CppExtension, BuildExtension
 
 
-class BuildMetalLibraries(build_ext):
+class CustomBuild(BuildExtension):
     def run(self):
         # Compile Metal shaders into a metallib file
         metallib_filename = "./custom_metal_ops.metallib"
@@ -91,8 +91,7 @@ setup(
     include_package_data=True,
     python_requires='>=3.11',
     ext_modules=get_extensions(),
-    cmdclass={'build_ext': BuildMetalLibraries},
-    cmdclass={'build_ext': BuildExtension},
+    cmdclass={'build_ext': CustomBuild},
     zip_safe=False,
     requires=[
         'torch',
