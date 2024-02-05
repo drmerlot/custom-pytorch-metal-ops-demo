@@ -14,21 +14,14 @@ torch::Tensor& dispatchRelu(const torch::Tensor& input,
         id<MTLDevice> device = MTLCreateSystemDefaultDevice();
         NSError *error = nil;
 
-        // Load the shader source and create the compute kernel library
-        const char* customKernel = readMetalShader("../my_extension/metal/relu.metal");
-        id<MTLLibrary> customKernelLibrary = [device newLibraryWithSource:[NSString stringWithUTF8String:customKernel]
-                                                                  options:nil
-                                                                    error:&error];
-        delete[] customKernel;  // Free the shader source memory
-        TORCH_CHECK(customKernelLibrary, "Failed to create custom kernel library, error: ", error.localizedDescription.UTF8String);
+        // currently read-in hard hard coded var names
+        id<MTLLibrary> customKernelLibrary = readCompiledMetalLibrary(error, device);
 
-        // Create the compute kernel function
-        std::string kernel_name = "relu";
-        id<MTLFunction> customReluFunction = [customKernelLibrary newFunctionWithName:[NSString stringWithUTF8String:kernel_name.c_str()]];
-        TORCH_CHECK(customReluFunction, "Failed to create function state object for ", kernel_name.c_str());
+        id<MTLFunction> reluFunction = [customKernelLibrary newFunctionWithName:@"relu"];
+        TORCH_CHECK(reluFunction, "Failed to create function state object for relu");
 
         // Create a compute pipeline state object
-        id<MTLComputePipelineState> reluPSO = [device newComputePipelineStateWithFunction:customReluFunction error:&error];
+        id<MTLComputePipelineState> reluPSO = [device newComputePipelineStateWithFunction:reluFunction error:&error];
         TORCH_CHECK(reluPSO, error.localizedDescription.UTF8String);
 
         // Get a reference to the command buffer for the MPS stream

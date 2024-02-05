@@ -7,3 +7,8 @@ dist/%
 
 # ignore some notebook stuff
 .ipynb_checkpoints
+
+# metal compiling
+*.metallib
+*.air
+custom_metal_ops.h

@@ -19,21 +19,14 @@ torch::Tensor& dispatchMatrixAdd(const torch::Tensor& A,
         id<MTLDevice> device = MTLCreateSystemDefaultDevice();
         NSError *error = nil;
 
-        // Load the shader source and create the compute kernel library
-        const char* customKernel = readMetalShader("../my_extension/metal/matrix_add.metal");
-        id<MTLLibrary> customKernelLibrary = [device newLibraryWithSource:[NSString stringWithUTF8String:customKernel]
-                                                                  options:nil
-                                                                    error:&error];
-        delete[] customKernel;  // Free the shader source memory
-        TORCH_CHECK(customKernelLibrary, "Failed to create custom kernel library, error: ", error.localizedDescription.UTF8String);
+        // currently read-in hard hard coded var names
+        id<MTLLibrary> customKernelLibrary = readCompiledMetalLibrary(error, device);
 
-        // Create the compute kernel function
-        std::string kernel_name = "matrixAdd";
-        id<MTLFunction> customMatrixAddFunction = [customKernelLibrary newFunctionWithName:[NSString stringWithUTF8String:kernel_name.c_str()]];
-        TORCH_CHECK(customMatrixAddFunction, "Failed to create function state object for ", kernel_name.c_str());
+        id<MTLFunction> matrixAddFunction = [customKernelLibrary newFunctionWithName:@"matrixAdd"];
+        TORCH_CHECK(matrixAddFunction, "Failed to create function state object for marixAdd");
 
         // Create a compute pipeline state object
-        id<MTLComputePipelineState> matrixAddPSO = [device newComputePipelineStateWithFunction:customMatrixAddFunction error:&error];
+        id<MTLComputePipelineState> matrixAddPSO = [device newComputePipelineStateWithFunction:matrixAddFunction error:&error];
         TORCH_CHECK(matrixAddPSO, error.localizedDescription.UTF8String);
 
         // Get a reference to the command buffer for the MPS stream
