@@ -2,7 +2,6 @@ import os
 import torch
 import subprocess
 from setuptools import find_packages, setup
-from setuptools.command.build_ext import build_ext
 from torch.utils.cpp_extension import CppExtension, BuildExtension
 
 
@@ -10,21 +9,30 @@ class CustomBuild(BuildExtension):
     def run(self):
         # Compile Metal shaders into a metallib file
         metallib_filename = "./custom_metal_ops.metallib"
-        metal_sources = ["./my_extension/metal/matrix_multiply.metal"]  #, "./my_extension/metal/multiply_tensors.metal"]
-        # Command to compile Metal shaders
-        compile_command = ["xcrun", "-sdk", "macosx", "metal", "-c"] + metal_sources + ["-o", "my_metal_shaders.air"]
-        subprocess.check_call(compile_command)
-        # Command to create a Metal library
-        create_lib_command = ["xcrun", "-sdk", "macosx", "metallib", "my_metal_shaders.air", "-o", metallib_filename]
+        metal_sources = ["./my_extension/metal/matrix_multiply.metal",
+                         "./my_extension/metal/matrix_add.metal",
+                         "./my_extension/metal/relu.metal",
+                         "./my_extension/metal/add_tensors.metal"]
+
+        # Compile each Metal source file to an AIR file
+        air_files = []
+        for metal_source in metal_sources:
+            air_file = metal_source.replace('.metal', '.air')
+            compile_command = ["xcrun", "-sdk", "macosx", "metal", "-c", metal_source, "-o", air_file]
+            subprocess.check_call(compile_command)
+            air_files.append(air_file)
+
+        # Create a Metal library from all AIR files
+        metallib_filename = "./custom_metal_ops.metallib"
+        create_lib_command = ["xcrun", "-sdk", "macosx", "metallib"] + air_files + ["-o", metallib_filename]
         subprocess.check_call(create_lib_command)
 
-        # Step 2: Convert the .metallib file to a C header with xxd
-        metallib_path = './custom_metal_ops.metallib'  # Adjust path as necessary
-        header_path = './custom_metal_haders.h'  # Adjust path as necessary
-        cmd = f'xxd -i {metallib_path} {header_path}'
+        # Convert the .metallib file to a C header with xxd
+        header_path = './custom_metal_ops.h'
+        cmd = f'xxd -i {metallib_filename} {header_path}'
         subprocess.check_call(cmd, shell=True)
 
-        # Ensure the base class build_ext steps are carried out after compiling Metal shaders
+        # Continue with the base class build steps
         super().run()
 
 

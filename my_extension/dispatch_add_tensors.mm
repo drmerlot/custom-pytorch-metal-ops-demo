@@ -15,26 +15,14 @@ torch::Tensor& dispatchAddTensors(const torch::Tensor& a,
         // Set the number of threads equal to the number of elements within the input tensor.
         int numThreads = a.numel();
 
-        // get the shader source code as
-        const char* customKernel = readMetalShader("../my_extension/metal/add_tensors.metal");
+        // currently read-in hard hard coded var names
+        id<MTLLibrary> customKernelLibrary = readCompiledMetalLibrary(error, device);
 
-        // Load the custom soft shrink shader.
-        id<MTLLibrary> customKernelLibrary = [device newLibraryWithSource:[NSString stringWithUTF8String:customKernel]
-                                                                  options:nil
-                                                                    error:&error];
-        // free the memory from const char
-        delete[] customKernel;
-
-        // check the library was created with CUSTOM_KERNEL
-        TORCH_CHECK(customKernelLibrary, "Failed to to create custom kernel library, error: ", error.localizedDescription.UTF8String);
-
-        //
-        std::string kernel_name = "addTensors";
-        id<MTLFunction> customAddTensorsFunction = [customKernelLibrary newFunctionWithName:[NSString stringWithUTF8String:kernel_name.c_str()]];
-        TORCH_CHECK(customAddTensorsFunction, "Failed to create function state object for ", kernel_name.c_str());
+        id<MTLFunction> addTensorsFunction = [customKernelLibrary newFunctionWithName:@"addTensors"];
+        TORCH_CHECK(addTensorsFunction, "Failed to create function state object for addTensors");
 
         // Create a compute pipeline state object for the soft shrink kernel.
-        id<MTLComputePipelineState> addTensorsPSO = [device newComputePipelineStateWithFunction:customAddTensorsFunction error:&error];
+        id<MTLComputePipelineState> addTensorsPSO = [device newComputePipelineStateWithFunction:addTensorsFunction error:&error];
         TORCH_CHECK(addTensorsPSO, error.localizedDescription.UTF8String);
 
         // Get a reference to the command buffer for the MPS stream.

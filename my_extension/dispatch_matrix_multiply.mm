@@ -1,5 +1,5 @@
-#include "utils.h"
 #include "dispatch_matrix_multiply.h"
+#include "utils.h"
 #include <torch/extension.h>
 #import <Foundation/Foundation.h>
 #import <Metal/Metal.h>
@@ -16,25 +16,18 @@ torch::Tensor& dispatchMatrixMultiply(const torch::Tensor& A,
                                       const int& wB,
                                       torch::Tensor& result) {
     @autoreleasepool {
+        NSError *error = nil;
         // Retrieve the default Metal device
         id<MTLDevice> device = MTLCreateSystemDefaultDevice();
-        NSError *error = nil;
 
-        // Load the shader source and create the compute kernel library
-        const char* customKernel = readMetalShader("../my_extension/metal/matrix_multiply.metal");
-        id<MTLLibrary> customKernelLibrary = [device newLibraryWithSource:[NSString stringWithUTF8String:customKernel]
-                                                                  options:nil
-                                                                    error:&error];
-        delete[] customKernel;  // Free the shader source memory
-        TORCH_CHECK(customKernelLibrary, "Failed to create custom kernel library, error: ", error.localizedDescription.UTF8String);
+        // currently read-in hard hard coded var names
+        id<MTLLibrary> customKernelLibrary = readCompiledMetalLibrary(error, device);
 
-        // Create the compute kernel function
-        std::string kernel_name = "matrixMultiply";
-        id<MTLFunction> customMatrixMultiplyFunction = [customKernelLibrary newFunctionWithName:[NSString stringWithUTF8String:kernel_name.c_str()]];
-        TORCH_CHECK(customMatrixMultiplyFunction, "Failed to create function state object for ", kernel_name.c_str());
+        id<MTLFunction> matrixMultiplyFunction = [customKernelLibrary newFunctionWithName:@"matrixMultiply"];
+        TORCH_CHECK(matrixMultiplyFunction, "Failed to create function state object for marixMltiply");
 
-        // Create a compute pipeline state object
-        id<MTLComputePipelineState> matrixMultiplyPSO = [device newComputePipelineStateWithFunction:customMatrixMultiplyFunction error:&error];
+        // Now, use `matrixMultiplyFunction` to create a compute pipeline state, etc.
+        id<MTLComputePipelineState> matrixMultiplyPSO = [device newComputePipelineStateWithFunction:matrixMultiplyFunction error:&error];
         TORCH_CHECK(matrixMultiplyPSO, error.localizedDescription.UTF8String);
 
         // Get a reference to the command buffer for the MPS stream
