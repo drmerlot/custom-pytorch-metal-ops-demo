@@ -9,10 +9,10 @@ class CustomBuild(BuildExtension):
     def run(self):
         # Compile Metal shaders into a metallib file
         metallib_filename = "./custom_metal_ops.metallib"
-        metal_sources = ["./my_extension/metal/matrix_multiply.metal",
-                         "./my_extension/metal/matrix_add.metal",
-                         "./my_extension/metal/relu.metal",
-                         "./my_extension/metal/add_tensors.metal"]
+        metal_sources = ["./custom/metal/matrix_multiply.metal",
+                         "./custom/metal/matrix_add.metal",
+                         "./custom/metal/relu.metal",
+                         "./custom/metal/add_tensors.metal"]
 
         # Compile each Metal source file to an AIR file
         air_files = []
@@ -37,7 +37,6 @@ class CustomBuild(BuildExtension):
 
 
 def get_extensions():
-
     # prevent ninja from using too many resources
     try:
         import psutil
@@ -73,14 +72,14 @@ def get_extensions():
             ]
 
     ext_ops = CppExtension(
-        name='my_extension_cpp',
+        name='custom_cpp',
         sources=[
-            './my_extension/my_extension.cpp',
-            './my_extension/utils.mm',
-            './my_extension/dispatch_matrix_multiply.mm',
-            './my_extension/dispatch_matrix_add.mm',
-            './my_extension/dispatch_add_tensors.mm',
-            './my_extension/dispatch_relu.mm'
+            './custom/custom_ops.cpp',
+            './custom/utils.mm',
+            './custom/dispatch_matrix_multiply.mm',
+            './custom/dispatch_matrix_add.mm',
+            './custom/dispatch_add_tensors.mm',
+            './custom/dispatch_relu.mm'
         ],
         include_dirs=[],
         extra_objects=[],
@@ -93,11 +92,11 @@ def get_extensions():
 
 
 setup(
-    name='my_extension',
+    name='custom',
     version="0.0.1",
     packages=find_packages(),
     include_package_data=True,
-    python_requires='>=3.11',
+    python_requires='>=3.11',  # unsure this is nessesary
     ext_modules=get_extensions(),
     cmdclass={'build_ext': CustomBuild},
     zip_safe=False,

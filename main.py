@@ -1,6 +1,6 @@
 import time
 import torch
-import my_extension_cpp
+import custom_ops_cpp
 import torch.mps.profiler as mps_profiler
 
 
@@ -12,7 +12,7 @@ a = torch.tensor(
 print(f"Input tensor a: {a}")
 
 # run the function
-result = my_extension_cpp.relu(a)
+result = custom_ops_cpp.relu(a)
 print(f"relu result: {result} with dim {result.shape}")
 
 
@@ -23,7 +23,7 @@ print(f"Input tensor a: {a}")
 print(f"Input tensor b: {b}")
 print(f"Input device: {a.device}")
 
-result = my_extension_cpp.add_tensors(a, b)
+result = custom_ops_cpp.add_tensors(a, b)
 print(f"Addition result: {result}")
 print(f"Output device {result.device}")
 assert result.device == torch.device('mps:0'), "Output tensor is (maybe?) not on the MPS device"
@@ -43,7 +43,7 @@ print(f"Input tensor a: {a} with dim {a.shape}")
 print(f"Input tensor b: {b} with dim {b.shape}")
 print(f"Input device: {a.device}")
 
-result = my_extension_cpp.matrix_multiply(a, b)
+result = custom_ops_cpp.matrix_multiply(a, b)
 print(f"Mat multi result: {result} with dim {result.shape}")
 print(f"Output device {result.device}")
 assert result.device == torch.device('mps:0'), "Output tensor is (maybe?) not on the MPS device"
@@ -56,7 +56,7 @@ b = torch.full((10000, 10000), 30.3).to('mps')
 
 st = time.time()
 mps_profiler.start(mode='interval', wait_until_completed=True)
-result = my_extension_cpp.matrix_multiply(a, b)
+result = custom_ops_cpp.matrix_multiply(a, b)
 mps_profiler.stop()
 ed = time.time()
 el = ed - st
@@ -78,4 +78,3 @@ result = a @ b
 ed = time.time()
 el = ed - st
 print(f"pytorch @ standard op on cpu finished in {el} with test value {result[0,0]} and size {result.shape}")
-
