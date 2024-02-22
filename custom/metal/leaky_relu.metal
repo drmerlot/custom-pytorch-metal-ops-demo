@@ -1,7 +1,7 @@
 #include <metal_stdlib>
 using namespace metal;
 
-kernel void relu(
+kernel void leakyRelu(
     constant float* input [[buffer(0)]],       // Buffer for input data
     constant uint* numElements [[buffer(1)]],  // Buffer for number of elements
     device float* output [[buffer(2)]],        // Buffer for output data

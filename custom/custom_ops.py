@@ -101,3 +101,35 @@ class CustomReLUFunction(Function):
         grad_input = grad_output.clone()
         grad_input[inp < 0.0] = 0.0
         return grad_input
+
+
+class CustomLeakyReLU(nn.Module):
+    def __init__(self):
+        super(CustomLeakyReLU, self).__init__()
+        # No additional parameters to initialize
+
+    def forward(self, inp):
+        # Call the C++ function that invokes the Metal shader
+        inp_cont = inp.contiguous()
+        return CustomReLUFunction.apply(inp_cont)
+
+    def extra_repr(self):
+        return "MPS-based ReLU"
+
+
+class CustomLeakyReLUFunction(Function):
+    @staticmethod
+    def forward(ctx, inp):
+        # Store input for use in the backward pass
+        ctx.save_for_backward(inp)
+        inp_cont = inp.contiguous()
+        return custom_cpp.leaky_relu(inp_cont)
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        # Retrieve the stored input
+        inp, = ctx.saved_tensors
+        # Create gradient tensor, doing this in pytorch but should be in metal
+        grad_input = grad_output.clone()
+        grad_input[inp < 0.0] = 0.01
+        return grad_input

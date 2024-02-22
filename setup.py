@@ -12,6 +12,7 @@ class CustomBuild(BuildExtension):
         metal_sources = ["./custom/metal/matrix_multiply.metal",
                          "./custom/metal/matrix_add.metal",
                          "./custom/metal/relu.metal",
+                         "./custom/metal/leaky_relu.metal",
                          "./custom/metal/add_tensors.metal"]
 
         # Compile each Metal source file to an AIR file
