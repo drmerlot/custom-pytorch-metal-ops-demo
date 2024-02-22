@@ -1,6 +1,5 @@
 import math
 import torch
-#import torch.nn.init as init
 import torch.nn as nn
 from torch.autograd import Function
 import my_extension_cpp

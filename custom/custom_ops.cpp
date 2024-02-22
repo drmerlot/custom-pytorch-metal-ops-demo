@@ -1,8 +1,9 @@
 #include "dispatch_add_tensors.h"
 #include "dispatch_matrix_multiply.h"
 #include "dispatch_matrix_add.h"
-#include "dispatch_relu.h"
+#include "dispatch_element_wise_matrix_op.h"
 #include <torch/extension.h>
+#include <string>
 
 // C++ op dispatching the Metal add tensors shader
 torch::Tensor add_tensors(const torch::Tensor &a, const torch::Tensor &b) {
@@ -110,8 +111,11 @@ torch::Tensor relu(const torch::Tensor &input) {
     // Allocate the output, same shape as the input
     torch::Tensor output = torch::empty_like(input);
 
+    // define the metal op to use
+    std::string relu = "relu";
+
     //return dispatchMatrixMultiply(A, B, output);
-    return dispatchRelu(input, width, height, output);
+    return dispatchElementWiseMatrixOp(input, width, height, relu, output);
 }
 
 

@@ -79,7 +79,7 @@ def get_extensions():
             './custom/dispatch_matrix_multiply.mm',
             './custom/dispatch_matrix_add.mm',
             './custom/dispatch_add_tensors.mm',
-            './custom/dispatch_relu.mm'
+            './custom/dispatch_element_wise_matrix_op.mm'
         ],
         include_dirs=[],
         extra_objects=[],

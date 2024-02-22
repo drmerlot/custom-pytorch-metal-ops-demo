@@ -1,5 +1,6 @@
 #include "utils.h"
 #include <torch/extension.h>
+#include <string>
 #import <Foundation/Foundation.h>
 #import <Metal/Metal.h>
 
@@ -8,6 +9,7 @@
 torch::Tensor& dispatchElementWiseMatrixOp(const torch::Tensor& input,
                                            const torch::Tensor& width,
                                            const torch::Tensor& height,
+                                           const std::string& metalOpName,
                                            torch::Tensor& output) {
     @autoreleasepool {
         // Retrieve the default Metal device
@@ -17,12 +19,14 @@ torch::Tensor& dispatchElementWiseMatrixOp(const torch::Tensor& input,
         // currently read-in hard hard coded var names
         id<MTLLibrary> customKernelLibrary = readCompiledMetalLibrary(error, device);
 
-        id<MTLFunction> reluFunction = [customKernelLibrary newFunctionWithName:@"relu"];
-        TORCH_CHECK(reluFunction, "Failed to create function state object for relu");
+        // convernt the input string to NSString
+        NSString *metalOpNameNSString = [NSString stringWithUTF8String:metalOpName.c_str()];
+        id<MTLFunction> elementWiseOpFunction = [customKernelLibrary newFunctionWithName:metalOpNameNSString];
+        TORCH_CHECK(elementWiseOpFunction, "Failed to create function state object for metal op");
 
         // Create a compute pipeline state object
-        id<MTLComputePipelineState> reluPSO = [device newComputePipelineStateWithFunction:reluFunction error:&error];
-        TORCH_CHECK(reluPSO, error.localizedDescription.UTF8String);
+        id<MTLComputePipelineState> elementWiseOpPSO = [device newComputePipelineStateWithFunction:elementWiseOpFunction error:&error];
+        TORCH_CHECK(elementWiseOpPSO, error.localizedDescription.UTF8String);
 
         // Get a reference to the command buffer for the MPS stream
         id<MTLCommandBuffer> commandBuffer = torch::mps::get_command_buffer();
@@ -38,7 +42,7 @@ torch::Tensor& dispatchElementWiseMatrixOp(const torch::Tensor& input,
             TORCH_CHECK(computeEncoder, "Failed to create compute command encoder");
 
             // Encode the pipeline state object
-            [computeEncoder setComputePipelineState:reluPSO];
+            [computeEncoder setComputePipelineState:elementWiseOpPSO];
 
             // Set the tensor buffers
             [computeEncoder setBuffer:getMTLBufferStorage(input) offset:input.storage_offset() * input.element_size() atIndex:0];
@@ -56,7 +60,7 @@ torch::Tensor& dispatchElementWiseMatrixOp(const torch::Tensor& input,
             MTLSize gridSize = MTLSizeMake(outputW, outputH, 1);
 
             // Query the maximum threads per thread group from the device
-            NSUInteger maxThreadsPerThreadgroup = reluPSO.maxTotalThreadsPerThreadgroup;
+            NSUInteger maxThreadsPerThreadgroup = elementWiseOpPSO.maxTotalThreadsPerThreadgroup;
 
             // Choose a standard thread group size (like 8x8 or 16x16)
             // 32 x 32 (can be more in one dim if less in the other) seems like my max (apple M3 max binned)
