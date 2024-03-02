@@ -2,13 +2,13 @@
 using namespace metal;
 
 kernel void leakyRelu(
-    constant float* input [[buffer(0)]],       // Buffer for input data
-    constant uint* numElements [[buffer(1)]],  // Buffer for number of elements
-    device float* output [[buffer(2)]],        // Buffer for output data
-    uint gid [[thread_position_in_grid]]) {    // Global thread ID
+    constant float* input [[buffer(0)]],
+    constant uint* numElements [[buffer(1)]],
+    device float* output [[buffer(2)]],
+    uint gid [[thread_position_in_grid]]) {
 
     if (gid < *numElements) {
         float inputValue = input[gid];
-        output[gid] = (inputValue > 0.0f) ? inputValue : (0.01f * inputValue); // Correctly multiply scalar values
+        output[gid] = (inputValue > 0.0f) ? inputValue : (0.01f * inputValue);
     }
 }

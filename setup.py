@@ -38,7 +38,7 @@ class CustomBuild(BuildExtension):
 
 
 def get_extensions():
-    # prevent ninja from using too many resources
+    # limit compile resources
     try:
         import psutil
         num_cpu = len(psutil.Process().cpu_affinity())
@@ -97,7 +97,7 @@ setup(
     version="0.0.1",
     packages=find_packages(),
     include_package_data=True,
-    python_requires='>=3.11',  # unsure this is nessesary
+    python_requires='>=3.11',
     ext_modules=get_extensions(),
     cmdclass={'build_ext': CustomBuild},
     zip_safe=False,
