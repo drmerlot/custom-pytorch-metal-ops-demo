@@ -12,6 +12,7 @@ class CustomBuild(BuildExtension):
         metal_sources = ["./custom/metal/matrix_multiply.metal",
                          "./custom/metal/matrix_add.metal",
                          "./custom/metal/relu.metal",
+                         "./custom/metal/leaky_relu.metal",
                          "./custom/metal/add_tensors.metal"]
 
         # Compile each Metal source file to an AIR file
@@ -37,7 +38,7 @@ class CustomBuild(BuildExtension):
 
 
 def get_extensions():
-    # prevent ninja from using too many resources
+    # limit compile resources
     try:
         import psutil
         num_cpu = len(psutil.Process().cpu_affinity())
@@ -79,7 +80,7 @@ def get_extensions():
             './custom/dispatch_matrix_multiply.mm',
             './custom/dispatch_matrix_add.mm',
             './custom/dispatch_add_tensors.mm',
-            './custom/dispatch_relu.mm'
+            './custom/dispatch_element_wise_matrix_op.mm'
         ],
         include_dirs=[],
         extra_objects=[],
@@ -96,7 +97,7 @@ setup(
     version="0.0.1",
     packages=find_packages(),
     include_package_data=True,
-    python_requires='>=3.11',  # unsure this is nessesary
+    python_requires='>=3.11',
     ext_modules=get_extensions(),
     cmdclass={'build_ext': CustomBuild},
     zip_safe=False,
