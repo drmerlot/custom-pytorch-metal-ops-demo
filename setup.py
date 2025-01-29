@@ -12,8 +12,7 @@ class CustomBuild(BuildExtension):
         metal_sources = ["./custom/metal/matrix_multiply.metal",
                          "./custom/metal/matrix_add.metal",
                          "./custom/metal/relu.metal",
-                         "./custom/metal/leaky_relu.metal",
-                         "./custom/metal/add_tensors.metal"]
+                         "./custom/metal/leaky_relu.metal"]
 
         # Compile each Metal source file to an AIR file
         air_files = []
@@ -79,7 +78,6 @@ def get_extensions():
             './custom/utils.mm',
             './custom/dispatch_matrix_multiply.mm',
             './custom/dispatch_matrix_add.mm',
-            './custom/dispatch_add_tensors.mm',
             './custom/dispatch_element_wise_matrix_op.mm'
         ],
         include_dirs=[],

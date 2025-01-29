@@ -5,12 +5,6 @@ from torch.autograd import Function
 import custom_cpp
 
 
-# Define a wrapper functions
-def add_tensors(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
-    # Call the C++ function
-    return custom_cpp.add_tensors(a, b)
-
-
 class CustomLinear(nn.Module):
     def __init__(self, in_features, out_features, bias=True):
         super(CustomLinear, self).__init__()
