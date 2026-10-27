@@ -1,6 +1,6 @@
 import time
 import torch
-import custom_ops_cpp
+import custom_cpp as custom_ops_cpp
 import torch.mps.profiler as mps_profiler
 
 

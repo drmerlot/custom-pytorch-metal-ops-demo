@@ -155,5 +155,5 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
     m.def("matrix_add", &matrix_add);
     m.def("add_tensors", &add_tensors);
     m.def("relu", &relu);
-    m.def("leaky_relu", &relu);
+    m.def("leaky_relu", &leaky_relu);
 }

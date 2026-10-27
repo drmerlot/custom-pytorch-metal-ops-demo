@@ -12,3 +12,8 @@ dist/%
 *.metallib
 *.air
 custom_metal_ops.h
+
+# local builds and logs
+*.so
+*.log
+.venv/
