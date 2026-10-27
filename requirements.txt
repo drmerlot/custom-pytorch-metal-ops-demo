@@ -1,2 +1,5 @@
-setuptools==68.0.0
+setuptools>=83
 torch
+# tests and the figure
+pytest
+matplotlib

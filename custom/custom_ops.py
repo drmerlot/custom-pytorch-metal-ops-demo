@@ -122,5 +122,5 @@ class CustomLeakyReLUFunction(Function):
     def backward(ctx: Function, grad_output: Tensor) -> Tensor:
         inp, = ctx.saved_tensors
         grad_input: Tensor = grad_output.clone()
-        grad_input[inp < 0.0] = 0.01
+        grad_input[inp < 0.0] *= 0.01     # d/dx leaky_relu = 0.01 for x < 0, scaling the incoming gradient
         return grad_input
